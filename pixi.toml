@@ -1,0 +1,21 @@
+[workspace]
+name = "epiforecasts-nhs-pressure"
+version = "0.1.0"
+description = "Probabilistic NHS Winter / System Pressure Early Warning"
+channels = ["conda-forge"]
+
+[dependencies]
+python = ">=3.10,<3.13"
+
+[pypi-dependencies]
+numpy = "*"
+pandas = "*"
+scipy = "*"
+pymc = "*"
+arviz = "*"
+matplotlib = "*"
+streamlit = "*"
+
+[tasks]
+generate-data = "python generate_synthetic_data.py"
+run-dashboard = "streamlit run app.py"

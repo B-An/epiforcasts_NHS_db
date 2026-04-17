@@ -1,0 +1,24 @@
+---
+description: NHS-aligned demo — synthetic Bayesian system-pressure analytics (not RAG/FHIR by default)
+alwaysApply: true
+---
+
+# Epiforecasts NHS pressure demo (Bayesian analytics)
+
+This repo is a **synthetic-data** Streamlit + PyMC **system pressure** exploration. It is **not** a RAG stack or live clinical system unless you add that scope.
+
+## In scope for the assistant
+
+- **Safety & framing:** Outputs are **analytical indicators** (e.g. pressure, uncertainty), not diagnosis, treatment, or individual patient decisions. Prefer language that requires **human review** for any operational use.
+- **Explainability:** Surface **uncertainty**, data sparsity, and model assumptions in UI copy and code comments where users might misread risk.
+- **Data protection:** Assume **synthetic** data for demos; if real or quasi-identifiable data is introduced, apply **minimisation**, document purpose per field, and treat as high sensitivity.
+- **Compute:** Prefer **local** execution where feasible; call out **latency / cores / chains** trade-offs when changing sampling (e.g. Intel vs Apple Silicon, single-core vs parallel).
+- **Separation of concerns:** Keep **analytical** workloads separate from any future transactional or live-clinical interfaces.
+- **Model & ML governance:** For Bayesian or scoring changes, note **limitations** (bias, coverage, missing data, misspecification) and prefer **graceful** messaging over overconfident metrics.
+- **Engineering:** State **trade-offs** and **assumptions** when changing behaviour; add **short** comments where changes affect perceived safety, governance, or cost.
+
+## Out of scope unless the user explicitly expands the project
+
+Do **not** treat the following as mandatory for this demo unless the user asks to add them: **HL7 FHIR resource modelling**, **RAG retrieval/citations**, **MCP/agent toolchains**, or **full** assurance artefact sets.
+
+For the full NHS + RAG + governance rule set, see `RULES_CURSOR_NHS.md` in the repo root.
