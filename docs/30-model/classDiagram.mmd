@@ -1,0 +1,97 @@
+classDiagram
+    %% Core Classes
+    class CacheManager {
+        -Path posteriors_path
+        -Path cache_dir
+        -int ttl_hours
+        -Path summary_stats_path
+        -Path icb_samples_path
+        -Path health_check_path
+        +is_valid() bool
+        +is_posterior_available() bool
+        +is_cache_warm() bool
+        +is_stale() bool
+        +warm_cache() bool
+        +load_posteriors() InferenceData
+        +load_summary_stats() dict
+        +load_samples(icb_idx) ndarray
+        +clear_cache() void
+        +get_health_check() dict
+        +get_status_report() str
+    }
+
+    class BayesianModel {
+        -DataFrame df
+        -bool fast
+        +fit_pressure_model() tuple
+        -_extract_samples() ndarray
+    }
+
+    class InferenceData {
+        -posterior
+        -prior
+        -observed_data
+        -attrs metadata
+    }
+
+    class DataFrame {
+        -icb column
+        -week column
+        -bed_occupancy column
+    }
+
+    class PyMCModel {
+        +Normal() distribution
+        +Exponential() distribution
+        +sample() InferenceData
+    }
+
+    class StreamlitUI {
+        -CacheManager cache
+        +load_posteriors()
+        +load_summary_stats()
+        +render_dashboard()
+    }
+
+    class InferenceDaemon {
+        +should_rerun_inference() bool
+        +run_inference_safe() bool
+        +schedule_periodic() void
+    }
+
+    class Path {
+        +exists() bool
+        +stat() stat_result
+    }
+
+    %% Relationships
+    CacheManager --> Path : uses
+    CacheManager --> InferenceData : manages
+    CacheManager --> dict : caches JSON
+    
+    BayesianModel --> DataFrame : reads
+    BayesianModel --> PyMCModel : uses
+    BayesianModel --> InferenceData : produces
+    
+    InferenceDaemon --> BayesianModel : calls
+    InferenceDaemon --> CacheManager : writes via warm_cache
+    
+    StreamlitUI --> CacheManager : validates and loads
+    StreamlitUI --> InferenceData : displays
+
+    note for CacheManager "GATEKEEPER PATTERN:
+    Ensures UI has zero MCMC
+    Validates cache readiness
+    Separates offline/online"
+    
+    note for BayesianModel "DOMAIN MODEL:
+    Encodes Bayesian spec
+    Immutable outputs"
+    
+    note for InferenceDaemon "PRODUCER:
+    Background scheduler
+    Writes to cache"
+    
+    note for StreamlitUI "CONSUMER:
+    Read-only access
+    No computation"

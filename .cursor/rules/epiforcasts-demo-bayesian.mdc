@@ -22,3 +22,19 @@ This repo is a **synthetic-data** Streamlit + PyMC **system pressure** explorati
 Do **not** treat the following as mandatory for this demo unless the user asks to add them: **HL7 FHIR resource modelling**, **RAG retrieval/citations**, **MCP/agent toolchains**, or **full** assurance artefact sets.
 
 For the full NHS + RAG + governance rule set, see `RULES_CURSOR_NHS.md` in the repo root.
+
+
+Plain‑English Bayesian Update Rule
+
+How this system updates its view of pressure
+This system starts with a baseline expectation of NHS system pressure, informed by historical patterns and prior knowledge.
+As new data arrive (e.g. bed occupancy, flow indicators, respiratory demand), the system:
+
+Assesses how consistent the new signals are with previous evidence
+Updates its belief gradually, rather than jumping to conclusions
+Maintains uncertainty, reflecting data gaps, noise, and disagreement between signals
+
+The result is a probabilistic assessment of current system pressure, not a point prediction.
+Strong or consistent evidence moves the estimate more; weak or noisy evidence moves it less.
+
+

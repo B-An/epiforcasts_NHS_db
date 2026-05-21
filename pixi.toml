@@ -3,9 +3,13 @@ name = "epiforecasts-nhs-pressure"
 version = "0.1.0"
 description = "Probabilistic NHS Winter / System Pressure Early Warning"
 channels = ["conda-forge"]
+# So `pixi install` resolves on dev machines (Windows, Linux, macOS).
+platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 
 [dependencies]
 python = ">=3.10,<3.13"
+# Lets PyTensor compile C ops (much faster than pure Python). See docs/PYTENSOR_COMPILER.md
+cxx-compiler = "*"
 
 [pypi-dependencies]
 numpy = "*"
@@ -18,4 +22,15 @@ streamlit = "*"
 
 [tasks]
 generate-data = "python generate_synthetic_data.py"
+run-inference = "python run_inference.py"
+run-inference-full = "python run_inference.py --full"
+daemon = "python inference_daemon.py"
+daemon-once = "python inference_daemon.py --once"
+cache-warm = "python cache_manager.py warm"
+cache-check = "python cache_manager.py check"
+cache-status = "python cache_manager.py status"
+cache-clear = "python cache_manager.py clear"
 run-dashboard = "streamlit run app.py"
+run-dashboard-fast = "streamlit run app_fast.py"
+run-full-pipeline = { cmd = "python generate_synthetic_data.py && python run_inference.py && streamlit run app.py", description = "Generate data, run inference, then launch dashboard" }
+dev = { cmd = "python generate_synthetic_data.py && python inference_daemon.py --once && streamlit run app_fast.py", description = "Development setup: data + single inference + fast UI" }
