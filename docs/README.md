@@ -6,6 +6,16 @@ This is the canonical documentation index for the epiforecasts NHS pressure demo
 
 Provide a single, structured, hyperlinked map so contributors can find the right information quickly without ambiguity.
 
+## Architecture and evidence quick path
+
+Use this sequence when you need a defensible project narrative from system design to governance controls:
+
+1. Architecture and rationale: [20-architecture/README.md](20-architecture/README.md)
+2. Technical model summary: [30-model/TECHNICAL_SUMMARY_ADVANCED.md](30-model/TECHNICAL_SUMMARY_ADVANCED.md)
+3. Governance controls and risks: [50-governance/GOVERNANCE_OVERVIEW.md](50-governance/GOVERNANCE_OVERVIEW.md)
+4. Assumptions and validation approach: [70-reference/assumptions-register.md](70-reference/assumptions-register.md)
+5. External standards and references: [70-reference/references.md](70-reference/references.md)
+
 ## Taxonomy index
 
 1. [00-overview](00-overview)
@@ -27,6 +37,7 @@ Provide a single, structured, hyperlinked map so contributors can find the right
 4. First run in minutes: [40-operations/FIRST_RUN_DUMMIES.md](40-operations/FIRST_RUN_DUMMIES.md)
 5. Governance and assurance teams: [50-governance/GOVERNANCE_OVERVIEW.md](50-governance/GOVERNANCE_OVERVIEW.md)
 6. Contributors: [../CONTRIBUTING.md](../CONTRIBUTING.md)
+7. Architecture and assurance reviewers: [20-architecture/README.md](20-architecture/README.md)
 
 ## Migration map from legacy pages
 
@@ -54,3 +65,7 @@ Every substantial document should contain:
 
 Writing standard: [60-contributing/style-guide.md](60-contributing/style-guide.md)
 Terminology standard: [70-reference/glossary.md](70-reference/glossary.md)
+
+## Last updated
+
+2026-05-26

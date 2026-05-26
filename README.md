@@ -12,6 +12,25 @@ This project demonstrates how a Bayesian workflow can support conversation about
 2. separates offline model inference from online user experience;
 3. keeps governance and plain-language communication central.
 
+## Architecture and evidence at a glance
+
+This repository is structured as an evidence-to-decision support prototype.
+Its central architecture choice is deliberate separation between:
+
+1. offline probabilistic inference (compute-heavy);
+2. online dashboard serving from cached artifacts (interaction-safe).
+
+Why this matters:
+
+1. uncertainty is communicated explicitly rather than hidden behind single-value outputs;
+2. results are reproducible and auditable through persisted artifacts;
+3. user experience is reliable because dashboards do not run MCMC at interaction time;
+4. governance boundaries are explicit, reducing risk of over-interpretation.
+
+Canonical architecture and rationale: [docs/20-architecture/README.md](docs/20-architecture/README.md)
+Canonical technical evidence summary: [docs/30-model/TECHNICAL_SUMMARY_ADVANCED.md](docs/30-model/TECHNICAL_SUMMARY_ADVANCED.md)
+Canonical governance controls: [docs/50-governance/GOVERNANCE_OVERVIEW.md](docs/50-governance/GOVERNANCE_OVERVIEW.md)
+
 ## 2. What is in scope
 
 In scope:
@@ -113,5 +132,10 @@ Before submitting changes:
 
 This repository is a prototype and communication artefact for collaborative design and safe experimentation. It is not production-authorised clinical software.
 
-Release tracking: [CHANGELOG.md](CHANGELOG.md)
+Defensibility references:
 
+1. architecture and rationale: [docs/20-architecture/README.md](docs/20-architecture/README.md)
+2. assumptions register: [docs/70-reference/assumptions-register.md](docs/70-reference/assumptions-register.md)
+3. evidence references: [docs/70-reference/references.md](docs/70-reference/references.md)
+
+Release tracking: [CHANGELOG.md](CHANGELOG.md)

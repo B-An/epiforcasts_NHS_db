@@ -1,10 +1,26 @@
 # Advanced Technical Summary
 
 ## Audience
+
 Engineers, statisticians, technical leads, and governance reviewers seeking deep methodological context.
 
 ## Purpose
+
 Provide a high-rigour explanation of the system architecture, modelling assumptions, uncertainty semantics, strategic posture, and launch communication implications.
+
+## Scope
+
+In scope:
+
+1. statistical architecture and rationale;
+2. uncertainty interpretation and limits;
+3. evidence posture for technical and governance review.
+
+Out of scope:
+
+1. claims of production clinical effectiveness;
+2. policy-threshold validation;
+3. live operational deployment assurance.
 
 ## Executive summary
 
@@ -12,6 +28,12 @@ This project implements a Bayesian latent-pressure workflow over synthetic NHS-s
 
 Its principal strengths are transparency, modularity, and communication-oriented uncertainty framing.
 Its principal weaknesses are model-generator structural mismatch, limited diagnostic depth in fast mode, and potential threshold misinterpretation by non-technical audiences.
+
+Defensibility rests on three conditions:
+
+1. explicit uncertainty semantics;
+2. reproducible artifact contracts;
+3. governance-constrained interpretation language.
 
 ## 1. System architecture and information flow
 
@@ -42,6 +64,14 @@ The offline-online split addresses three constraints simultaneously:
 
 This architecture is consistent with a bounded-context design where statistical computation and interaction presentation are intentionally decoupled.
 
+### 1.3 Evidence relevance
+
+The architecture is important because it controls how evidence is produced, preserved, and interpreted:
+
+1. model fitting is reproducible and inspectable offline;
+2. UI behaviour is deterministic with respect to frozen artifacts;
+3. uncertainty communication is preserved across audience levels.
+
 ## 2. Statistical framing
 
 ### 2.1 Core latent structure
@@ -67,9 +97,25 @@ $P(z_i > c \mid D)$
 
 for communication reference value $c$ and observed data $D$.
 
+This framing is critical for safe use: pressure outputs are advisory evidence, not action mandates.
+
 ### 2.3 Identifiability and hierarchy caveat
 
 When fitting a single-area slice, hierarchical separation weakens conceptually, reducing the practical meaning of national-versus-local decomposition. This is a communication risk if labels are interpreted causally or organisationally.
+
+### 2.4 Decision-use boundary
+
+The model supports:
+
+1. uncertainty-aware discussion;
+2. scenario interpretation under explicit assumptions;
+3. structured technical review.
+
+The model does not support:
+
+1. direct clinical decision automation;
+2. policy trigger setting without calibration evidence;
+3. claims of validated operational forecasting.
 
 ## 3. Methodological strengths and limitations
 
@@ -87,12 +133,20 @@ When fitting a single-area slice, hierarchical separation weakens conceptually, 
 3. Fast-mode inference settings reduce assurance depth.
 4. Reference thresholds are not externally calibrated.
 
+### 3.3 Assurance implications
+
+Each limitation has assurance consequences:
+
+1. structural mismatch weakens transfer claims beyond prototype context;
+2. limited diagnostics increase residual convergence uncertainty in fast mode;
+3. uncalibrated thresholds require strict communication caveats.
+
 ## 4. SWOT analysis
 
 ### 4.1 Project SWOT
 
 | Dimension | Analysis |
-|---|---|
+| --- | --- |
 | Strengths | Clear modular architecture, uncertainty-first communication, reproducible offline artefacts, synthetic-data safety. |
 | Weaknesses | Potentially ambiguous threshold semantics, limited diagnostic regimen in fast mode, partial hierarchy fragility in narrow slices. |
 | Opportunities | Extend to richer temporal and multivariate models, establish calibration framework, build governance-ready evaluation pack. |
@@ -101,7 +155,7 @@ When fitting a single-area slice, hierarchical separation weakens conceptually, 
 ### 4.2 Communication SWOT
 
 | Dimension | Analysis |
-|---|---|
+| --- | --- |
 | Strengths | Existing governance tone is explicit and responsible; vocabulary can be standardised through glossary-first policy. |
 | Weaknesses | Legacy docs overlap can obscure canonical messages. |
 | Opportunities | Audience-specific pathways and hyperlinked taxonomy can reduce onboarding friction and improve review quality. |
@@ -131,6 +185,13 @@ Use language that is:
 2. advisory, not directive;
 3. transparent about assumptions and uncertainty;
 4. explicit that this is not clinical decision automation.
+
+### 5.4 Minimum evidence bundle for defensible communication
+
+1. architecture rationale page: [../20-architecture/README.md](../20-architecture/README.md)
+2. governance controls and risk register linkage: [../50-governance/GOVERNANCE_OVERVIEW.md](../50-governance/GOVERNANCE_OVERVIEW.md)
+3. assumptions and validation plan: [../70-reference/assumptions-register.md](../70-reference/assumptions-register.md)
+4. external standards and methods references: [../70-reference/references.md](../70-reference/references.md)
 
 ## 6. Candidate roadmap for research depth
 
@@ -199,6 +260,14 @@ classDiagram
 3. implement formal documentation review gates in PR workflow;
 4. create decision records for threshold policy and model evolution.
 
+## 9. Assurance statement
+
+This document supports a prototype-level evidence claim:
+
+The architecture and model are suitable for uncertainty-aware communication and technical exploration under synthetic data constraints.
+
+It does not support a production-readiness or clinical-effectiveness claim without additional validation, calibration, and governance sign-off.
+
 ## Related links
 
 1. docs home: ../README.md
@@ -207,3 +276,7 @@ classDiagram
 4. governance overview: ../50-governance/GOVERNANCE_OVERVIEW.md
 5. assumptions register: ../70-reference/assumptions-register.md
 6. references: ../70-reference/references.md
+
+## Last updated
+
+2026-05-26
