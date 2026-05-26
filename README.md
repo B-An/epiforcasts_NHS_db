@@ -230,6 +230,11 @@ Any extension should preserve evidence discipline:
 2. each external source recorded with provenance in [docs/70-reference/references.md](docs/70-reference/references.md);
 3. each major direction change logged in [docs/80-decisions/README.md](docs/80-decisions/README.md) and [docs/90-changelog/logs/LIFECYCLE_GIT_CHANGELOG.md](docs/90-changelog/logs/LIFECYCLE_GIT_CHANGELOG.md).
 
+9.5 confidence guardrails:
+
+1. sustained multi-day green evidence trend is required (not same-day runs only);
+2. at least one Trust/ICB utility feedback loop must be logged and linked to a resulting change.
+
 ### How this broaches NHS long-range planning
 
 A mature version of this approach can support priorities commonly associated with NHS long-range planning (including the evolving 10-year planning direction):
