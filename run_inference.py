@@ -57,16 +57,17 @@ def fit_pressure_model(df: pd.DataFrame, *, fast: bool = True) -> tuple[pm.Model
 
     with pm.Model() as model:
         mu_national = pm.Normal("mu_national", 0, 1)
-        sigma_icb = pm.Exponential("sigma_icb", 1)
-        icb_effect = pm.Normal(
-            "icb_effect",
+        sigma_icb = pm.HalfNormal("sigma_icb", sigma=1)
+        icb_offset = pm.Normal(
+            "icb_offset",
             0,
             1,
             shape=len(np.unique(icb_codes)),
         )
+        icb_effect = pm.Deterministic("icb_effect", icb_offset * sigma_icb)
 
-        latent_pressure = mu_national + icb_effect[icb_codes] * sigma_icb
-        sigma_obs = pm.Exponential("sigma_obs", 5)
+        latent_pressure = mu_national + icb_effect[icb_codes]
+        sigma_obs = pm.HalfNormal("sigma_obs", sigma=5)
 
         pm.Normal(
             "bed_obs",
@@ -75,18 +76,25 @@ def fit_pressure_model(df: pd.DataFrame, *, fast: bool = True) -> tuple[pm.Model
             observed=beds,
         )
 
-        trace = pm.sample(
-            draws=draws,
-            tune=tune,
-            chains=1,
-            cores=1,
-            target_accept=0.9,
-            progressbar=True,
-            compute_convergence_checks=True,
-        )
+        try:
+            idata = pm.sample(
+                draws=draws,
+                tune=tune,
+                chains=1,
+                cores=1,
+                target_accept=0.9,
+                init="adapt_diag",
+                progressbar=True,
+                compute_convergence_checks=True,
+            )
+        except ValueError as exc:
+            if "Not enough samples to build a trace" not in str(exc):
+                raise
 
-    # Convert PyMC trace to ArviZ InferenceData for persistence
-    idata = az.from_pymc3(trace)
+            print("⚠ NUTS sampling failed; falling back to ADVI approximation…")
+            approx = pm.fit(n=20_000, method="advi", progressbar=True)
+            idata = approx.sample(draws=draws, return_inferencedata=True)
+
     return model, idata
 
 

@@ -37,4 +37,12 @@ Maintains uncertainty, reflecting data gaps, noise, and disagreement between sig
 The result is a probabilistic assessment of current system pressure, not a point prediction.
 Strong or consistent evidence moves the estimate more; weak or noisy evidence moves it less.
 
+## Karpathy Execution Rules (Lightweight)
+- Think before coding: state assumptions, ask when ambiguous, surface tradeoffs.
+- Simplicity first: solve only the requested problem; avoid speculative abstractions.
+- Surgical changes: touch only lines required for the task; no unrelated cleanup.
+- Goal-driven execution: define verifiable success criteria before editing.
+- Verify loop: reproduce issue, implement minimal fix, run targeted checks/tests.
+- Trivial-task exception: for obvious one-line fixes, proceed directly.
+
 

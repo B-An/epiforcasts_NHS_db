@@ -101,15 +101,15 @@ def _plot_minimal(samples: np.ndarray) -> plt.Figure:
 
 
 @st.cache_resource(show_spinner="Loading cached posteriors…")
-def load_posteriors(cache_manager: CacheManager) -> az.InferenceData:
+def load_posteriors(_cache_manager: CacheManager) -> az.InferenceData:
     """Load posteriors from cache (no MCMC, guaranteed)."""
-    return cache_manager.load_posteriors()
+    return _cache_manager.load_posteriors()
 
 
 @st.cache_resource(show_spinner="Loading cached statistics…")
-def load_summary_stats(cache_manager: CacheManager) -> dict:
+def load_summary_stats(_cache_manager: CacheManager) -> dict:
     """Load pre-computed summary statistics (instant access)."""
-    return cache_manager.load_summary_stats()
+    return _cache_manager.load_summary_stats()
 
 
 def get_last_update_time(path: str) -> str:
