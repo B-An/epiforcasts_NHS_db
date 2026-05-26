@@ -65,6 +65,8 @@ Every substantial document should contain:
 
 Writing standard: [60-contributing/style-guide.md](60-contributing/style-guide.md)
 Terminology standard: [70-reference/glossary.md](70-reference/glossary.md)
+Internal standard baseline for all areas: [../.standards/DOCUMENTATION_STANDARD.md](../.standards/DOCUMENTATION_STANDARD.md)
+Area compliance matrix: [../.standards/DOC_AREA_COMPLIANCE.md](../.standards/DOC_AREA_COMPLIANCE.md)
 
 ## Last updated
 

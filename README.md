@@ -98,6 +98,7 @@ Generated inference artifacts are local runtime outputs and are not committed by
 1. `posteriors.nc`
 2. `posteriors_metadata.nc`
 3. `.cache/`
+4. `.artifacts/` (fallback outputs when primary files are locked)
 
 Regenerate these via:
 
@@ -112,6 +113,12 @@ For full operational guidance, read [docs/40-operations/RUNBOOK.md](docs/40-oper
 For a minimal first run, read [docs/40-operations/FIRST_RUN_DUMMIES.md](docs/40-operations/FIRST_RUN_DUMMIES.md).
 
 ## 4. Repository structure
+
+Top-level hygiene policy:
+
+1. Keep first-level folders intentional and stable (`docs/`, `EpiNow2/`, and canonical entry-point files only).
+2. Route generated runtime byproducts to hidden working folders (`.cache/`, `.artifacts/`) rather than root.
+3. Avoid adding ad-hoc top-level files unless they are durable project entry points.
 
 Core Python components:
 

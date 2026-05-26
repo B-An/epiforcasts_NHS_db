@@ -208,8 +208,10 @@ def save_posterior_summaries(
             time.sleep(attempt)
 
     if lock_error is not None:
+        artifacts_dir = Path(".artifacts")
+        artifacts_dir.mkdir(parents=True, exist_ok=True)
         fallback_name = f"{output_path.stem}_{datetime.now():%Y%m%d_%H%M%S}.nc"
-        actual_output_path = output_path.with_name(fallback_name)
+        actual_output_path = artifacts_dir / fallback_name
         idata.to_netcdf(str(actual_output_path))
         print(
             "⚠ Could not overwrite locked output file. "
