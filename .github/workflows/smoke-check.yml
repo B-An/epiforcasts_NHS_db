@@ -27,9 +27,13 @@ jobs:
           python -m py_compile run_inference.py
           python -m py_compile cache_manager.py
           python -m py_compile health_check.py
+          python -m py_compile acceptance_check.py
 
       - name: Health check
         run: python health_check.py
 
       - name: Fast deterministic inference smoke
         run: python run_inference.py --fast --advi-steps 500 --seed 42 --output-path ci_posteriors.nc
+
+      - name: Acceptance checks
+        run: python acceptance_check.py --posterior ci_posteriors.nc --metadata ci_posteriors_metadata.nc

@@ -6,6 +6,7 @@ This folder keeps narrative operational and interaction logs that complement, bu
 ## Contents
 
 1. [INTERACTION_LOG.md](INTERACTION_LOG.md)
+2. [LIFECYCLE_GIT_CHANGELOG.md](LIFECYCLE_GIT_CHANGELOG.md)
 
 ## Notes
 
