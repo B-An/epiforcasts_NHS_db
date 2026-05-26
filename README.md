@@ -64,6 +64,8 @@ pixi run daemon-once
 pixi run run-dashboard
 ```
 
+If port `8501` is already in use, dashboard startup now auto-falls back to the next free port (`8502`..`8510`) instead of failing.
+
 Run a one-command local health check:
 
 ```bash
@@ -78,6 +80,11 @@ For consistent behavior, use one environment manager per session.
 2. Alternative: local `.venv` with explicit package parity checks.
 
 If you see PyTensor compiler warnings (`g++ not detected`), inference still runs but may be much slower.
+
+Dashboard startup reliability:
+
+1. `pixi run run-dashboard` and `pixi run run-dashboard-fast` use a safe launcher with automatic port fallback.
+2. If fallback occurs, the selected port is printed in terminal output.
 
 ## Artifact policy
 

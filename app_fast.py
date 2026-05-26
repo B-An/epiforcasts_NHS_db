@@ -100,6 +100,67 @@ def _plot_minimal(samples: np.ndarray) -> plt.Figure:
     return fig
 
 
+def _inject_nhs_theme() -> None:
+        st.markdown(
+                """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+    --nhs-blue: #005eb8;
+    --nhs-dark-blue: #003087;
+    --nhs-light-blue: #e8f3ff;
+    --border-soft: #d8dde0;
+}
+
+.stApp {
+    background: linear-gradient(180deg, #f4f8ff 0%, #ffffff 45%);
+    font-family: 'Public Sans', 'Segoe UI', sans-serif;
+}
+
+h1, h2, h3 {
+    color: var(--nhs-dark-blue);
+    letter-spacing: -0.01em;
+}
+
+.hero {
+    background: linear-gradient(120deg, var(--nhs-dark-blue), var(--nhs-blue));
+    color: white;
+    border-radius: 14px;
+    padding: 0.95rem 1.1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 5px 18px rgba(0, 48, 135, 0.18);
+}
+
+.hero h1 {
+    color: white;
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.hero p {
+    margin: 0.35rem 0 0;
+    opacity: 0.96;
+}
+
+[data-testid="stMetric"] {
+    background: white;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 0.5rem 0.65rem;
+    box-shadow: 0 1px 5px rgba(0, 48, 135, 0.06);
+}
+
+[data-testid="stSidebar"] {
+    border-right: 1px solid var(--border-soft);
+    background: #f8fbff;
+}
+</style>
+                """,
+                unsafe_allow_html=True,
+        )
+
+
 @st.cache_resource(show_spinner="Loading cached posteriors…")
 def load_posteriors(_cache_manager: CacheManager) -> az.InferenceData:
     """Load posteriors from cache (no MCMC, guaranteed)."""
@@ -126,11 +187,18 @@ def get_last_update_time(path: str) -> str:
 # ============================================================================
 
 st.set_page_config(layout="wide", page_title="NHS Pressure — Fast View (demo)")
-st.title("🏥 NHS System Pressure — Current Status (demo)")
+_inject_nhs_theme()
+st.markdown(
+    """
+<div class="hero">
+  <h1>NHS System Pressure — Fast View</h1>
+  <p>Read-only operational snapshot for quick review in huddles and escalation calls.</p>
+</div>
+    """,
+    unsafe_allow_html=True,
+)
 st.caption(
-    "**Read-only fast view** | Updated automatically in background. "
-    "[Full interactive version →](http://localhost:8501) "
-    "| [Docs →](OFFLINE_INFERENCE.md)"
+    "Updated from cached posterior artifacts. Use the full dashboard for richer controls and explainability."
 )
 
 # Initialize cache manager
@@ -159,7 +227,7 @@ if not icbs:
 
 # Sidebar: quick select
 with st.sidebar:
-    st.header("⚡ Quick Select")
+    st.header("Quick Select")
     selected_icb = st.radio(
         "Geography",
         options=icbs,

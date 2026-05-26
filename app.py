@@ -90,6 +90,95 @@ def _credible_triplet(samples: np.ndarray, mass: float) -> tuple[float, float, f
     return lo, mid, hi
 
 
+def _inject_nhs_theme() -> None:
+        """Apply a modern NHS-inspired visual system for clarity and consistency."""
+        st.markdown(
+                """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+    --nhs-blue: #005eb8;
+    --nhs-dark-blue: #003087;
+    --nhs-light-blue: #e8f3ff;
+    --nhs-white: #ffffff;
+    --ink-strong: #1d1d1d;
+    --ink-soft: #4f4f4f;
+    --border-soft: #d8dde0;
+}
+
+.stApp {
+    background: linear-gradient(180deg, #f5f9ff 0%, #ffffff 35%);
+    color: var(--ink-strong);
+    font-family: 'Public Sans', 'Segoe UI', sans-serif;
+}
+
+h1, h2, h3 {
+    color: var(--nhs-dark-blue);
+    letter-spacing: -0.01em;
+}
+
+.hero {
+    background: linear-gradient(120deg, var(--nhs-dark-blue) 0%, var(--nhs-blue) 70%);
+    color: var(--nhs-white);
+    border-radius: 16px;
+    padding: 1.1rem 1.2rem;
+    margin-bottom: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 6px 24px rgba(0, 48, 135, 0.2);
+}
+
+.hero h1 {
+    color: var(--nhs-white);
+    margin: 0;
+    font-size: 1.65rem;
+}
+
+.hero p {
+    margin: 0.45rem 0 0;
+    opacity: 0.96;
+    font-size: 0.96rem;
+}
+
+.section-card {
+    background: var(--nhs-white);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 0.95rem 1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 2px 10px rgba(0, 48, 135, 0.06);
+}
+
+.section-title {
+    color: var(--nhs-dark-blue);
+    font-weight: 700;
+    margin: 0 0 0.35rem;
+}
+
+.section-text {
+    color: var(--ink-soft);
+    font-size: 0.94rem;
+    margin: 0;
+}
+
+[data-testid="stMetric"] {
+    background: #ffffff;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 0.55rem 0.7rem;
+    box-shadow: 0 1px 5px rgba(0, 48, 135, 0.05);
+}
+
+[data-testid="stSidebar"] {
+    border-right: 1px solid var(--border-soft);
+    background: #f8fbff;
+}
+</style>
+                """,
+                unsafe_allow_html=True,
+        )
+
+
 def _plot_pressure_question(
     samples: np.ndarray,
     *,
@@ -177,10 +266,15 @@ def load_summary_stats(_cache_manager: CacheManager) -> dict:
 # Streamlit UI
 # -----------------------------------------------------------------------------
 st.set_page_config(layout="wide", page_title="System pressure — early signal (demo)")
-st.title("NHS system pressure — early signal (demo)")
-st.caption(
-    "Helps teams ask: **How worried should we be, given the current evidence?** "
-    "This is **decision support**, not a forecast, clinical guidance, or official NHS metric."
+_inject_nhs_theme()
+st.markdown(
+    """
+<div class="hero">
+  <h1>System Pressure Early Signal</h1>
+  <p>Decision-support view for Trust and ICB teams. Probabilistic, uncertainty-aware, and explicitly non-clinical.</p>
+</div>
+    """,
+    unsafe_allow_html=True,
 )
 
 path = WEEKLY_CSV
@@ -303,8 +397,18 @@ risk_label, risk_hint = _risk_band(
     pc_med=pc_med,
 )
 
+st.markdown(
+    """
+<div class="section-card">
+  <p class="section-title">Current Interpretation</p>
+  <p class="section-text">Use this view to judge whether pressure signals are strengthening, how uncertain they are, and where local operational review should focus first.</p>
+</div>
+    """,
+    unsafe_allow_html=True,
+)
+
 with st.container(border=True):
-    st.subheader("Summary — current pressure risk (indicative)")
+    st.subheader("Summary — Current Pressure Risk (Indicative)")
     c0, c1, c2, c3 = st.columns([1.1, 1, 1, 1.2])
     with c0:
         st.markdown(f"### {risk_label}")
@@ -351,7 +455,7 @@ Strong or consistent evidence moves the estimate more; weak or noisy evidence mo
     )
 
 st.markdown("---")
-st.markdown("### Chart — what does the evidence say about pressure?")
+st.markdown("### Evidence Distribution")
 st.caption(
     "Question answered: **How much posterior weight sits above routine vs elevated pressure?** "
     "Dashed lines are **demo reference** cut-points — not national operational thresholds."

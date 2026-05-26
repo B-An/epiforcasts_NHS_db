@@ -70,6 +70,7 @@ Rationale: converts compute-heavy outputs into stable serving contracts.
 4. UI serving layer
 Role: deliver full and fast dashboards from cache only.
 Rationale: protects latency and reliability; avoids hidden runtime fitting behaviour.
+Operational reliability note: dashboard launch uses automatic port fallback to avoid startup failure when default local ports are occupied.
 
 5. Governance control layer
 Role: enforce interpretation boundaries through language, assumptions, and references.

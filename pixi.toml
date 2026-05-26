@@ -32,7 +32,7 @@ cache-status = "python cache_manager.py status"
 cache-clear = "python cache_manager.py clear"
 health-check = "python health_check.py"
 acceptance-check = "python acceptance_check.py"
-run-dashboard = "streamlit run app.py"
-run-dashboard-fast = "streamlit run app_fast.py"
+run-dashboard = "python launch_streamlit.py --app app.py --preferred-port 8501 --max-port 8510"
+run-dashboard-fast = "python launch_streamlit.py --app app_fast.py --preferred-port 8501 --max-port 8510"
 run-full-pipeline = { cmd = "python generate_synthetic_data.py && python run_inference.py && streamlit run app.py", description = "Generate data, run inference, then launch dashboard" }
 dev = { cmd = "python generate_synthetic_data.py && python inference_daemon.py --once && streamlit run app_fast.py", description = "Development setup: data + single inference + fast UI" }
