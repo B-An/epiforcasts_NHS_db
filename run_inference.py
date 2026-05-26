@@ -133,12 +133,12 @@ def fit_pressure_model(
                     if "Not enough samples to build a trace" not in str(exc):
                         raise
                     print(
-                        "⚠ NUTS attempt failed with trace-build error; "
-                        "trying next fallback path…"
+                        "[WARN] NUTS attempt failed with trace-build error; "
+                        "trying next fallback path..."
                     )
 
             if idata is None:
-                print("⚠ NUTS retries exhausted; falling back to deterministic ADVI.")
+                print("[WARN] NUTS retries exhausted; falling back to deterministic ADVI.")
                 approx = pm.fit(
                     n=max(advi_steps, 30_000),
                     method="advi",
@@ -202,7 +202,7 @@ def save_posterior_summaries(
                 raise
             lock_error = exc
             print(
-                f"⚠ Output file lock detected on {output_path} "
+                f"[WARN] Output file lock detected on {output_path} "
                 f"(attempt {attempt}/3). Retrying..."
             )
             time.sleep(attempt)
@@ -214,11 +214,11 @@ def save_posterior_summaries(
         actual_output_path = artifacts_dir / fallback_name
         idata.to_netcdf(str(actual_output_path))
         print(
-            "⚠ Could not overwrite locked output file. "
+            "[WARN] Could not overwrite locked output file. "
             f"Saved to fallback path: {actual_output_path}"
         )
     else:
-        print(f"✓ Posterior saved to {actual_output_path}")
+        print(f"[OK] Posterior saved to {actual_output_path}")
 
     # Also save ICB index mapping as JSON for UI reference
     icb_names = df["icb"].astype("category").cat.categories.tolist()
@@ -230,7 +230,7 @@ def save_posterior_summaries(
     metadata_path = actual_output_path.with_stem(actual_output_path.stem + "_metadata")
     with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=2)
-    print(f"✓ Metadata saved to {metadata_path}")
+    print(f"[OK] Metadata saved to {metadata_path}")
     
     # Warm cache for instant UI access
     print("Warming cache for instant UI access…")
@@ -238,7 +238,7 @@ def save_posterior_summaries(
     if cache.warm_cache():
         print(cache.get_status_report())
     else:
-        print("⚠ Cache warming failed; UI will be slower on first access")
+        print("[WARN] Cache warming failed; UI will be slower on first access")
 
 
 def main():
@@ -288,12 +288,12 @@ def main():
 
     # Load data
     if not args.data_path.exists():
-        print(f"✗ Data file not found: {args.data_path}", file=sys.stderr)
+        print(f"[FAIL] Data file not found: {args.data_path}", file=sys.stderr)
         sys.exit(1)
 
     print(f"Loading data from {args.data_path}…")
     df = pd.read_csv(args.data_path)
-    print(f"✓ Loaded {len(df)} rows, {df['icb'].nunique()} ICBs")
+    print(f"[OK] Loaded {len(df)} rows, {df['icb'].nunique()} ICBs")
 
     # Fit model
     print("Fitting Bayesian model…")
@@ -303,13 +303,13 @@ def main():
         random_seed=args.seed,
         advi_steps=args.advi_steps,
     )
-    print(f"✓ Model fitted; posterior has {idata.posterior.dims['draw']} draws")
+    print(f"[OK] Model fitted; posterior has {idata.posterior.dims['draw']} draws")
 
     # Save results
     print(f"Saving to {args.output_path}…")
     save_posterior_summaries(idata, df, Path(args.output_path))
 
-    print("✓ Done!")
+    print("[OK] Done!")
 
 
 if __name__ == "__main__":

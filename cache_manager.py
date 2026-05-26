@@ -117,7 +117,7 @@ class CacheManager:
             return False
         
         try:
-            logger.info(f"Warming cache from {self.posteriors_path}…")
+            logger.info(f"Warming cache from {self.posteriors_path}...")
             
             # Load posteriors
             idata = az.from_netcdf(str(self.posteriors_path))
@@ -183,7 +183,7 @@ class CacheManager:
                 json.dump(health, f, indent=2)
             
             logger.info(
-                f"✓ Cache warmed: {len(summary_stats)} ICBs, "
+                f"[OK] Cache warmed: {len(summary_stats)} ICBs, "
                 f"{len(self._list_cached_samples())} sample files"
             )
             return True
@@ -237,7 +237,7 @@ class CacheManager:
     
     def clear_cache(self) -> None:
         """Clear all cached statistics (but not posteriors)."""
-        logger.info("Clearing cache…")
+        logger.info("Clearing cache...")
         import shutil
         if self.summary_stats_path.exists():
             self.summary_stats_path.unlink()
@@ -245,7 +245,7 @@ class CacheManager:
             self.health_check_path.unlink()
         if self.icb_samples_path.exists():
             shutil.rmtree(self.icb_samples_path)
-        logger.info("✓ Cache cleared")
+        logger.info("[OK] Cache cleared")
     
     def get_health_check(self) -> dict:
         """Get cache health status."""
@@ -266,23 +266,23 @@ class CacheManager:
         if self.posteriors_path.exists():
             size_mb = self.posteriors_path.stat().st_size / (1024**2)
             mtime = datetime.fromtimestamp(self.posteriors_path.stat().st_mtime)
-            lines.append(f"✓ Posteriors: {self.posteriors_path} ({size_mb:.1f} MB)")
+            lines.append(f"[OK] Posteriors: {self.posteriors_path} ({size_mb:.1f} MB)")
             lines.append(f"  Updated: {mtime.strftime('%Y-%m-%d %H:%M:%S')}")
             lines.append(f"  Stale: {self.is_stale()}")
         else:
-            lines.append(f"✗ Posteriors: MISSING")
+            lines.append(f"[FAIL] Posteriors: MISSING")
         
         # Cache warmth
         if self.is_cache_warm():
-            lines.append(f"✓ Summary stats: {self.summary_stats_path}")
-            lines.append(f"✓ Samples: {len(self._list_cached_samples())} files")
+            lines.append(f"[OK] Summary stats: {self.summary_stats_path}")
+            lines.append(f"[OK] Samples: {len(self._list_cached_samples())} files")
         else:
-            lines.append(f"✗ Summary stats: NOT WARMED")
+            lines.append(f"[FAIL] Summary stats: NOT WARMED")
         
         # Health check
         health = self.get_health_check()
         if health.get("status") != "not_warmed":
-            lines.append(f"✓ Last warm: {health.get('timestamp')}")
+            lines.append(f"[OK] Last warm: {health.get('timestamp')}")
         
         lines.append("=" * 50)
         return "\n".join(lines)

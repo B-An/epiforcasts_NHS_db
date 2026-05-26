@@ -34,5 +34,8 @@ health-check = "python health_check.py"
 acceptance-check = "python acceptance_check.py"
 run-dashboard = "python launch_streamlit.py --app app.py --preferred-port 8501 --max-port 8510"
 run-dashboard-fast = "python launch_streamlit.py --app app_fast.py --preferred-port 8501 --max-port 8510"
+run-dashboard-resilient = "python run_dashboard_resilient.py --app app.py --preferred-port 8501 --max-port 8510 --fallback-on-any-failure"
+run-dashboard-fast-resilient = "python run_dashboard_resilient.py --app app_fast.py --preferred-port 8501 --max-port 8510 --fallback-on-any-failure"
+evidence-cycle = "python log_evidence_run.py --run-inference-fast"
 run-full-pipeline = { cmd = "python generate_synthetic_data.py && python run_inference.py && python launch_streamlit.py --app app.py --preferred-port 8501 --max-port 8510", description = "Generate data, run inference, then launch dashboard" }
 dev = { cmd = "python generate_synthetic_data.py && python inference_daemon.py --once && python launch_streamlit.py --app app_fast.py --preferred-port 8501 --max-port 8510", description = "Development setup: data + single inference + fast UI" }

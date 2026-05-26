@@ -85,10 +85,30 @@ Dashboard startup reliability:
 
 1. `pixi run run-dashboard` and `pixi run run-dashboard-fast` use a safe launcher with automatic port fallback.
 2. If fallback occurs, the selected port is printed in terminal output.
-3. If `pixi run ...` fails with certificate/solver errors, run directly via `.venv`:
+3. If `pixi run ...` fails with certificate/solver errors, use the resilient launcher first:
+
+```bash
+.venv\Scripts\python.exe run_dashboard_resilient.py --app app.py --fallback-on-any-failure
+```
+
+4. If you want direct control, run Streamlit via `.venv`:
 
 ```bash
 .venv\Scripts\python.exe launch_streamlit.py --app app.py --preferred-port 8501 --max-port 8510
+```
+
+Evidence and confidence hardening automation:
+
+1. Run one independent evidence cycle and auto-append a timestamped entry:
+
+```bash
+.venv\Scripts\python.exe log_evidence_run.py --run-inference-fast
+```
+
+2. Record at least one Trust/ICB utility session with explicit change linkage:
+
+```bash
+.venv\Scripts\python.exe record_trust_feedback.py --organisation-type Trust --organisation-name "Example NHS Trust" --session-type review --question "Operational question" --signal "Signal used" --action "Action considered" --usefulness 4 --timeliness 4 --clarity 4 --confidence 4 --interpretation-risks "None" --change "UI/model/docs change" --owner "Owner" --target-date "2026-06-15" --change-link "docs/90-changelog/logs/LIFECYCLE_GIT_CHANGELOG.md"
 ```
 
 ## Artifact policy
@@ -241,6 +261,7 @@ Any extension should preserve evidence discipline:
 
 1. sustained multi-day green evidence trend is required (not same-day runs only);
 2. at least one Trust/ICB utility feedback loop must be logged and linked to a resulting change.
+3. use `log_evidence_run.py` for repeatable daily evidence entries and `record_trust_feedback.py` for structured utility traceability.
 
 ### How this broaches NHS long-range planning
 

@@ -1,0 +1,84 @@
+"""
+Append one Trust/ICB utility feedback entry with required linkage fields.
+
+Usage example:
+    python record_trust_feedback.py \
+      --organisation-type Trust \
+      --organisation-name "Example NHS Trust" \
+      --session-type review \
+      --usefulness 4 --timeliness 4 --clarity 4 --confidence 4 \
+      --question "Should escalation staffing start earlier next week?" \
+      --signal "risk trajectory by ICB" \
+      --action "start pre-escalation rota" \
+      --interpretation-risks "none" \
+      --change "add uncertainty explainer text in dashboard" \
+      --owner "Ops Analytics Lead" \
+      --target-date "2026-06-15" \
+      --change-link "docs/90-changelog/logs/LIFECYCLE_GIT_CHANGELOG.md"
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import subprocess
+from pathlib import Path
+
+
+LOG_PATH = Path("docs/90-changelog/logs/TRUST_ICB_UTILITY_FEEDBACK_LOG.md")
+
+
+def _git_short_hash() -> str:
+    result = subprocess.run(
+        ["git", "rev-parse", "--short", "HEAD"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return "unknown"
+    return result.stdout.strip() or "unknown"
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Record one Trust/ICB utility feedback session.")
+    parser.add_argument("--organisation-type", choices=["Trust", "ICB", "Joint"], required=True)
+    parser.add_argument("--organisation-name", required=True)
+    parser.add_argument("--session-type", choices=["huddle", "review", "workshop"], required=True)
+    parser.add_argument("--data-period", default="not specified")
+    parser.add_argument("--question", required=True)
+    parser.add_argument("--signal", required=True)
+    parser.add_argument("--action", required=True)
+    parser.add_argument("--usefulness", type=int, choices=range(1, 6), required=True)
+    parser.add_argument("--timeliness", type=int, choices=range(1, 6), required=True)
+    parser.add_argument("--clarity", type=int, choices=range(1, 6), required=True)
+    parser.add_argument("--confidence", type=int, choices=range(1, 6), required=True)
+    parser.add_argument("--interpretation-risks", required=True)
+    parser.add_argument("--change", required=True)
+    parser.add_argument("--owner", required=True)
+    parser.add_argument("--target-date", required=True)
+    parser.add_argument("--change-link", required=True)
+    args = parser.parse_args()
+
+    if not LOG_PATH.exists():
+        raise FileNotFoundError(f"Missing feedback log: {LOG_PATH}")
+
+    now = dt.datetime.now(dt.timezone.utc)
+    commit_hash = _git_short_hash()
+
+    entry = f"""\n\n## {now.date()} ({args.organisation_type} utility session)\n\n- Date/time (UTC): {now.isoformat().replace('+00:00', 'Z')}\n- Organisation type: {args.organisation_type}\n- Organisation name: {args.organisation_name}\n- Session type: {args.session_type}\n- Commit hash and app version: {commit_hash}\n- Data period reviewed: {args.data_period}\n\n### Decision-support questions\n\n- Which local operational question was being answered? {args.question}\n- Which signal/view was used? {args.signal}\n- What action was considered? {args.action}\n- Was uncertainty understood and usable? yes/no (capture in session notes)\n\n### Utility outcome\n\n- Usefulness score (1-5): {args.usefulness}\n- Timeliness score (1-5): {args.timeliness}\n- Clarity score (1-5): {args.clarity}\n- Confidence in interpretation (1-5): {args.confidence}\n- Any interpretation risks observed: {args.interpretation_risks}\n\n### Follow-up\n\n- What should change in UI/model/docs? {args.change}\n- Owner: {args.owner}\n- Target date: {args.target_date}\n- Link to resulting commit/changelog item: {args.change_link}\n"""
+
+    content = LOG_PATH.read_text(encoding="utf-8")
+    if "No Trust/ICB utility feedback sessions logged yet." in content:
+        content = content.replace("No Trust/ICB utility feedback sessions logged yet.", "At least one session has now been logged. See entries below.")
+        LOG_PATH.write_text(content, encoding="utf-8")
+
+    with LOG_PATH.open("a", encoding="utf-8") as f:
+        f.write(entry)
+
+    print(f"[OK] Feedback entry appended to {LOG_PATH}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

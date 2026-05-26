@@ -31,6 +31,9 @@ pixi run daemon-once
 pixi run daemon
 pixi run run-dashboard
 pixi run run-dashboard-fast
+pixi run run-dashboard-resilient
+pixi run run-dashboard-fast-resilient
+pixi run evidence-cycle
 pixi run cache-status
 pixi run cache-check
 ```
@@ -39,8 +42,16 @@ Dashboard startup protection:
 
 1. Dashboard tasks use `launch_streamlit.py` for automatic port fallback.
 2. If `8501` is occupied, startup falls through `8502` to `8510` and continues.
-3. If `pixi run` fails due certificate/solver issues, launch directly from `.venv`:
+3. If `pixi run` fails due certificate/solver issues, use `run_dashboard_resilient.py` from `.venv` to auto-fallback:
+`python run_dashboard_resilient.py --app app.py --fallback-on-any-failure`.
+4. If needed, launch directly from `.venv`:
 `python launch_streamlit.py --app app.py --preferred-port 8501 --max-port 8510`.
+
+Evidence confidence loop:
+
+1. Run `python log_evidence_run.py --run-inference-fast` daily or per release candidate.
+2. Capture at least one Trust/ICB utility session using `record_trust_feedback.py`.
+3. Link resulting change actions in changelog and decision logs before claiming strict 9.5 confidence.
 
 Need a minimal first-run path?
 

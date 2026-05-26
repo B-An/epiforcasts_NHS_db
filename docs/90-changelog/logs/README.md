@@ -17,6 +17,8 @@ This folder keeps narrative operational and interaction logs that complement, bu
 
 1. Use logs for contextual narrative and session-level history.
 2. Use [../../../CHANGELOG.md](../../../CHANGELOG.md) for release-grade change tracking.
+3. Use `python log_evidence_run.py --run-inference-fast` to append standardized evidence entries.
+4. Use `python record_trust_feedback.py ...` to capture structured Trust/ICB utility feedback and change linkage.
 
 ## Related links
 
