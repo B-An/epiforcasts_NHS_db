@@ -30,6 +30,7 @@ cache-warm = "python cache_manager.py warm"
 cache-check = "python cache_manager.py check"
 cache-status = "python cache_manager.py status"
 cache-clear = "python cache_manager.py clear"
+health-check = "python health_check.py"
 run-dashboard = "streamlit run app.py"
 run-dashboard-fast = "streamlit run app_fast.py"
 run-full-pipeline = { cmd = "python generate_synthetic_data.py && python run_inference.py && streamlit run app.py", description = "Generate data, run inference, then launch dashboard" }

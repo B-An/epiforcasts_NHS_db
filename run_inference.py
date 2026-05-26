@@ -28,7 +28,13 @@ import arviz as az
 from cache_manager import CacheManager
 
 
-def fit_pressure_model(df: pd.DataFrame, *, fast: bool = True) -> tuple[pm.Model, az.InferenceData]:
+def fit_pressure_model(
+    df: pd.DataFrame,
+    *,
+    fast: bool = True,
+    random_seed: int = 42,
+    advi_steps: int = 20_000,
+) -> tuple[pm.Model, az.InferenceData]:
     """
     Fit Bayesian latent pressure model on bed occupancy.
 
@@ -53,7 +59,10 @@ def fit_pressure_model(df: pd.DataFrame, *, fast: bool = True) -> tuple[pm.Model
     draws = 400 if fast else 1000
     tune = 400 if fast else 1000
 
-    print(f"Sampling with draws={draws}, tune={tune}, fast={fast}")
+    print(
+        f"Inference config: draws={draws}, tune={tune}, fast={fast}, "
+        f"seed={random_seed}, advi_steps={advi_steps}"
+    )
 
     with pm.Model() as model:
         mu_national = pm.Normal("mu_national", 0, 1)
@@ -76,24 +85,78 @@ def fit_pressure_model(df: pd.DataFrame, *, fast: bool = True) -> tuple[pm.Model
             observed=beds,
         )
 
-        try:
-            idata = pm.sample(
-                draws=draws,
-                tune=tune,
-                chains=1,
-                cores=1,
-                target_accept=0.9,
-                init="adapt_diag",
+        if fast:
+            print("Fast mode: using deterministic ADVI approximation.")
+            approx = pm.fit(
+                n=advi_steps,
+                method="advi",
                 progressbar=True,
-                compute_convergence_checks=True,
+                random_seed=random_seed,
             )
-        except ValueError as exc:
-            if "Not enough samples to build a trace" not in str(exc):
-                raise
+            idata = approx.sample(
+                draws=draws,
+                return_inferencedata=True,
+                random_seed=random_seed,
+            )
+            inference_method = "advi-fast"
+        else:
+            nuts_attempts = [
+                {"target_accept": 0.90, "init": "adapt_diag"},
+                {"target_accept": 0.95, "init": "adapt_diag"},
+            ]
+            last_error: Exception | None = None
+            idata = None
 
-            print("⚠ NUTS sampling failed; falling back to ADVI approximation…")
-            approx = pm.fit(n=20_000, method="advi", progressbar=True)
-            idata = approx.sample(draws=draws, return_inferencedata=True)
+            for idx, cfg in enumerate(nuts_attempts, start=1):
+                try:
+                    print(
+                        f"NUTS attempt {idx}/{len(nuts_attempts)} "
+                        f"(target_accept={cfg['target_accept']}, init={cfg['init']})"
+                    )
+                    idata = pm.sample(
+                        draws=draws,
+                        tune=tune,
+                        chains=1,
+                        cores=1,
+                        target_accept=cfg["target_accept"],
+                        init=cfg["init"],
+                        progressbar=True,
+                        compute_convergence_checks=True,
+                        random_seed=random_seed,
+                    )
+                    inference_method = f"nuts-{idx}"
+                    break
+                except ValueError as exc:
+                    last_error = exc
+                    if "Not enough samples to build a trace" not in str(exc):
+                        raise
+                    print(
+                        "⚠ NUTS attempt failed with trace-build error; "
+                        "trying next fallback path…"
+                    )
+
+            if idata is None:
+                print("⚠ NUTS retries exhausted; falling back to deterministic ADVI.")
+                approx = pm.fit(
+                    n=max(advi_steps, 30_000),
+                    method="advi",
+                    progressbar=True,
+                    random_seed=random_seed,
+                )
+                idata = approx.sample(
+                    draws=draws,
+                    return_inferencedata=True,
+                    random_seed=random_seed,
+                )
+                inference_method = "advi-fallback"
+                if last_error is not None:
+                    print(f"Last NUTS error: {last_error}")
+
+    idata.attrs = dict(idata.attrs or {})
+    idata.attrs["inference_method"] = str(inference_method)
+    idata.attrs["inference_fast_mode"] = int(bool(fast))
+    idata.attrs["inference_seed"] = int(random_seed)
+    idata.attrs["inference_advi_steps"] = int(advi_steps)
 
     return model, idata
 
@@ -116,11 +179,13 @@ def save_posterior_summaries(
         Output NetCDF file path.
     """
     # Add metadata to InferenceData
-    idata.attrs = {
+    existing_attrs = dict(idata.attrs or {})
+    existing_attrs.update({
         "n_obs": len(df),
         "n_icbs": int(df["icb"].nunique()),
         "icbs": list(df["icb"].unique()),
-    }
+    })
+    idata.attrs = existing_attrs
 
     # Save to NetCDF
     idata.to_netcdf(str(output_path))
@@ -163,22 +228,34 @@ def main():
         default=Path("posteriors.nc"),
         help="Path to output NetCDF file.",
     )
-    parser.add_argument(
+    mode_group = parser.add_mutually_exclusive_group()
+    mode_group.add_argument(
         "--fast",
         action="store_true",
-        default=True,
-        help="Use reduced sampling (400 draws). Default behavior.",
+        help="Use fast deterministic ADVI path (default).",
     )
-    parser.add_argument(
+    mode_group.add_argument(
         "--full",
         action="store_true",
-        help="Use full sampling (1000 draws, 1000 tune).",
+        help="Use NUTS with retries/fallback for deeper inference.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed for deterministic sampling/fallback behavior.",
+    )
+    parser.add_argument(
+        "--advi-steps",
+        type=int,
+        default=int(os.environ.get("PRESSURE_MODEL_ADVI_STEPS", "20000")),
+        help="Number of ADVI optimization steps in fast/fallback paths.",
     )
 
     args = parser.parse_args()
 
     # Resolve fast flag
-    fast = not args.full
+    fast = True if not args.full else False
 
     # Load data
     if not args.data_path.exists():
@@ -191,7 +268,12 @@ def main():
 
     # Fit model
     print("Fitting Bayesian model…")
-    model, idata = fit_pressure_model(df, fast=fast)
+    model, idata = fit_pressure_model(
+        df,
+        fast=fast,
+        random_seed=args.seed,
+        advi_steps=args.advi_steps,
+    )
     print(f"✓ Model fitted; posterior has {idata.posterior.dims['draw']} draws")
 
     # Save results

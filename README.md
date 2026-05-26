@@ -64,6 +64,36 @@ pixi run daemon-once
 pixi run run-dashboard
 ```
 
+Run a one-command local health check:
+
+```bash
+pixi run health-check
+```
+
+## Environment reliability notes
+
+For consistent behavior, use one environment manager per session.
+
+1. Preferred: `pixi install` and `pixi run ...` tasks.
+2. Alternative: local `.venv` with explicit package parity checks.
+
+If you see PyTensor compiler warnings (`g++ not detected`), inference still runs but may be much slower.
+
+## Artifact policy
+
+Generated inference artifacts are local runtime outputs and are not committed by default:
+
+1. `posteriors.nc`
+2. `posteriors_metadata.nc`
+3. `.cache/`
+
+Regenerate these via:
+
+```bash
+pixi run daemon-once
+pixi run health-check
+```
+
 For full operational guidance, read [docs/40-operations/RUNBOOK.md](docs/40-operations/RUNBOOK.md).
 For a minimal first run, read [docs/40-operations/FIRST_RUN_DUMMIES.md](docs/40-operations/FIRST_RUN_DUMMIES.md).
 

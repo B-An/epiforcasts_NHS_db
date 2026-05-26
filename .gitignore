@@ -1,3 +1,11 @@
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+# Generated inference and cache artifacts
+.cache/
+posteriors.nc
+posteriors_metadata.nc
+
+# Local logs/runtime files
+inference_daemon.log
