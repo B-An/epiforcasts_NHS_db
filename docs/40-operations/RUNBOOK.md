@@ -39,6 +39,8 @@ Dashboard startup protection:
 
 1. Dashboard tasks use `launch_streamlit.py` for automatic port fallback.
 2. If `8501` is occupied, startup falls through `8502` to `8510` and continues.
+3. If `pixi run` fails due certificate/solver issues, launch directly from `.venv`:
+`python launch_streamlit.py --app app.py --preferred-port 8501 --max-port 8510`.
 
 Need a minimal first-run path?
 
@@ -75,6 +77,8 @@ Check compiler setup and use fast mode during iteration.
 Verify terms against glossary and update explanatory copy.
 4. Streamlit port already in use:
 Use `pixi run run-dashboard` (safe launcher). It auto-selects the next free port and prints it.
+5. Inference save fails with file lock on `posteriors.nc`:
+The script now retries and then saves to a timestamped `posteriors_YYYYMMDD_HHMMSS.nc` fallback instead of exiting.
 
 ## Related links
 

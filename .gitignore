@@ -6,6 +6,8 @@
 .cache/
 posteriors.nc
 posteriors_metadata.nc
+posteriors_*.nc
+posteriors_*_metadata.nc
 
 # Local logs/runtime files
 inference_daemon.log

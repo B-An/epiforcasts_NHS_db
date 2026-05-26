@@ -3,8 +3,8 @@ name = "epiforecasts-nhs-pressure"
 version = "0.1.0"
 description = "Probabilistic NHS Winter / System Pressure Early Warning"
 channels = ["conda-forge"]
-# So `pixi install` resolves on dev machines (Windows, Linux, macOS).
-platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
+# Local reliability-first default for this workspace.
+platforms = ["win-64"]
 
 [dependencies]
 python = ">=3.10,<3.13"
@@ -34,5 +34,5 @@ health-check = "python health_check.py"
 acceptance-check = "python acceptance_check.py"
 run-dashboard = "python launch_streamlit.py --app app.py --preferred-port 8501 --max-port 8510"
 run-dashboard-fast = "python launch_streamlit.py --app app_fast.py --preferred-port 8501 --max-port 8510"
-run-full-pipeline = { cmd = "python generate_synthetic_data.py && python run_inference.py && streamlit run app.py", description = "Generate data, run inference, then launch dashboard" }
-dev = { cmd = "python generate_synthetic_data.py && python inference_daemon.py --once && streamlit run app_fast.py", description = "Development setup: data + single inference + fast UI" }
+run-full-pipeline = { cmd = "python generate_synthetic_data.py && python run_inference.py && python launch_streamlit.py --app app.py --preferred-port 8501 --max-port 8510", description = "Generate data, run inference, then launch dashboard" }
+dev = { cmd = "python generate_synthetic_data.py && python inference_daemon.py --once && python launch_streamlit.py --app app_fast.py --preferred-port 8501 --max-port 8510", description = "Development setup: data + single inference + fast UI" }

@@ -15,9 +15,11 @@ Environment:
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -187,9 +189,34 @@ def save_posterior_summaries(
     })
     idata.attrs = existing_attrs
 
-    # Save to NetCDF
-    idata.to_netcdf(str(output_path))
-    print(f"✓ Posterior saved to {output_path}")
+    # Save to NetCDF with lock recovery for Windows/readers holding the file.
+    actual_output_path = output_path
+    lock_error: OSError | None = None
+    for attempt in range(1, 4):
+        try:
+            idata.to_netcdf(str(output_path))
+            lock_error = None
+            break
+        except OSError as exc:
+            if "unable to lock file" not in str(exc).lower():
+                raise
+            lock_error = exc
+            print(
+                f"⚠ Output file lock detected on {output_path} "
+                f"(attempt {attempt}/3). Retrying..."
+            )
+            time.sleep(attempt)
+
+    if lock_error is not None:
+        fallback_name = f"{output_path.stem}_{datetime.now():%Y%m%d_%H%M%S}.nc"
+        actual_output_path = output_path.with_name(fallback_name)
+        idata.to_netcdf(str(actual_output_path))
+        print(
+            "⚠ Could not overwrite locked output file. "
+            f"Saved to fallback path: {actual_output_path}"
+        )
+    else:
+        print(f"✓ Posterior saved to {actual_output_path}")
 
     # Also save ICB index mapping as JSON for UI reference
     icb_names = df["icb"].astype("category").cat.categories.tolist()
@@ -198,14 +225,14 @@ def save_posterior_summaries(
         "n_icbs": len(icb_names),
         "n_obs": len(df),
     }
-    metadata_path = output_path.with_stem(output_path.stem + "_metadata")
+    metadata_path = actual_output_path.with_stem(actual_output_path.stem + "_metadata")
     with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=2)
     print(f"✓ Metadata saved to {metadata_path}")
     
     # Warm cache for instant UI access
     print("Warming cache for instant UI access…")
-    cache = CacheManager(posteriors_path=output_path)
+    cache = CacheManager(posteriors_path=actual_output_path)
     if cache.warm_cache():
         print(cache.get_status_report())
     else:

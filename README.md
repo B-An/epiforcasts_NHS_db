@@ -85,6 +85,11 @@ Dashboard startup reliability:
 
 1. `pixi run run-dashboard` and `pixi run run-dashboard-fast` use a safe launcher with automatic port fallback.
 2. If fallback occurs, the selected port is printed in terminal output.
+3. If `pixi run ...` fails with certificate/solver errors, run directly via `.venv`:
+
+```bash
+.venv\Scripts\python.exe launch_streamlit.py --app app.py --preferred-port 8501 --max-port 8510
+```
 
 ## Artifact policy
 
@@ -100,6 +105,8 @@ Regenerate these via:
 pixi run daemon-once
 pixi run health-check
 ```
+
+If `posteriors.nc` is locked by a running dashboard, inference now retries and then writes a timestamped fallback artifact instead of crashing.
 
 For full operational guidance, read [docs/40-operations/RUNBOOK.md](docs/40-operations/RUNBOOK.md).
 For a minimal first run, read [docs/40-operations/FIRST_RUN_DUMMIES.md](docs/40-operations/FIRST_RUN_DUMMIES.md).
