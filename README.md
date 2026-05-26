@@ -226,3 +226,7 @@ A mature version of this approach can support priorities commonly associated wit
 4. clearer communication of uncertainty to avoid false certainty in winter escalation decisions.
 
 This remains a prototype pathway, not a policy product.
+
+Policy-facing PoC framing for Trust and ICB winter use:
+
+1. [docs/50-governance/POC_POLICY_ALIGNMENT_UK.md](docs/50-governance/POC_POLICY_ALIGNMENT_UK.md)
