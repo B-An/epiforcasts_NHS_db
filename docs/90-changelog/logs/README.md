@@ -1,12 +1,15 @@
 # Logs Index
 
 ## Purpose
+
 This folder keeps narrative operational and interaction logs that complement, but do not replace, Git history and release changelogs.
 
 ## Contents
 
 1. [INTERACTION_LOG.md](INTERACTION_LOG.md)
 2. [LIFECYCLE_GIT_CHANGELOG.md](LIFECYCLE_GIT_CHANGELOG.md)
+3. [EVIDENCE_LOG_TEMPLATE.md](EVIDENCE_LOG_TEMPLATE.md)
+4. [EVIDENCE_RUN_LOG.md](EVIDENCE_RUN_LOG.md)
 
 ## Notes
 

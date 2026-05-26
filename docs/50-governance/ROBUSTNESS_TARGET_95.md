@@ -29,6 +29,7 @@ Define a minimal, measurable acceptance baseline to support a defensible 9.3 to 
 2. No blocking failures in local `health_check.py`.
 3. Two consecutive green CI runs are required to claim 9.3+ defensibly.
 4. 9.5 claim requires sustained trend evidence beyond initial implementation window.
+5. Time-series evidence entries should be logged in `docs/90-changelog/logs/EVIDENCE_RUN_LOG.md` using `docs/90-changelog/logs/EVIDENCE_LOG_TEMPLATE.md`.
 
 ## Commands
 
