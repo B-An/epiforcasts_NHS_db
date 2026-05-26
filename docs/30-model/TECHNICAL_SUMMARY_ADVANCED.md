@@ -1,281 +1,111 @@
-# Advanced Technical Summary
+# Technical Summary (Simplified)
 
 ## Audience
 
-Engineers, statisticians, technical leads, and governance reviewers seeking deep methodological context.
+Engineers, analysts, technical leads, and governance reviewers.
 
 ## Purpose
 
-Provide a high-rigour explanation of the system architecture, modelling assumptions, uncertainty semantics, strategic posture, and launch communication implications.
+Explain how the system works, why it is designed this way, and what claims are and are not justified.
 
 ## Scope
 
 In scope:
 
-1. statistical architecture and rationale;
-2. uncertainty interpretation and limits;
-3. evidence posture for technical and governance review.
+1. architecture and data flow;
+2. model meaning and uncertainty;
+3. strengths, limits, and safe use.
 
 Out of scope:
 
-1. claims of production clinical effectiveness;
-2. policy-threshold validation;
-3. live operational deployment assurance.
+1. production-readiness claim;
+2. clinical-effectiveness claim;
+3. policy-threshold validation.
 
-## Executive summary
+## One-minute summary
 
-This project implements a Bayesian latent-pressure workflow over synthetic NHS-style panel data, with a strict separation between offline inference and online serving.
+This project estimates a pressure index using Bayesian inference on synthetic NHS-style data.
+Model fitting happens offline, and dashboards read cached results.
 
-Its principal strengths are transparency, modularity, and communication-oriented uncertainty framing.
-Its principal weaknesses are model-generator structural mismatch, limited diagnostic depth in fast mode, and potential threshold misinterpretation by non-technical audiences.
+Why this matters:
 
-Defensibility rests on three conditions:
+1. user-facing performance is stable;
+2. outputs are reproducible and auditable;
+3. uncertainty is shown explicitly.
 
-1. explicit uncertainty semantics;
-2. reproducible artifact contracts;
-3. governance-constrained interpretation language.
-
-## 1. System architecture and information flow
-
-### 1.1 Pipeline
+## 1. How the system works
 
 ```mermaid
-sequenceDiagram
-    participant G as Data Generator
-    participant I as Inference Engine
-    participant C as Cache Manager
-    participant U as User Interface
-
-    G->>I: synthetic_nhs_pressure.csv
-    I->>I: Bayesian sampling (offline)
-    I->>C: posteriors.nc
-    C->>C: pre-compute summaries and samples
-    U->>C: load cached artefacts
-    C-->>U: posterior-derived metrics and distributions
+flowchart LR
+    A[Synthetic data] --> B[Offline Bayesian inference]
+    B --> C[Posterior artifact]
+    C --> D[Cache warm and validation]
+    D --> E[Dashboards read cached outputs]
 ```
 
-### 1.2 Architectural rationale
+Design choice: separate heavy inference from UI serving.
 
-The offline-online split addresses three constraints simultaneously:
+Benefits:
 
-1. computational heaviness of MCMC;
-2. user-facing latency expectations;
-3. reproducibility and auditability of model outputs.
+1. faster dashboard experience;
+2. fewer runtime surprises;
+3. easier review of saved artifacts.
 
-This architecture is consistent with a bounded-context design where statistical computation and interaction presentation are intentionally decoupled.
+## 2. What the model output means
 
-### 1.3 Evidence relevance
+The model returns probability distributions, not certain truths.
 
-The architecture is important because it controls how evidence is produced, preserved, and interpreted:
-
-1. model fitting is reproducible and inspectable offline;
-2. UI behaviour is deterministic with respect to frozen artifacts;
-3. uncertainty communication is preserved across audience levels.
-
-## 2. Statistical framing
-
-### 2.1 Core latent structure
-
-At a conceptual level, the model expresses a latent pressure index as:
-
-$z_i = \mu + \sigma_{icb} \cdot \alpha_i$
-
-where:
-
-1. $\mu$ is the shared baseline latent component;
-2. $\alpha_i$ is an area-specific effect;
-3. $\sigma_{icb}$ scales between-area heterogeneity.
-
-Observed bed occupancy is then modelled via a Gaussian observation model with linear link to latent pressure.
-
-### 2.2 Epistemic interpretation
-
-Posterior outputs encode updated belief distributions, not deterministic states of reality.
-This supports probabilistic statements of the form:
+A useful expression is:
 
 $P(z_i > c \mid D)$
 
-for communication reference value $c$ and observed data $D$.
+This means: probability that area $i$ is above a reference level $c$, given data $D$.
 
-This framing is critical for safe use: pressure outputs are advisory evidence, not action mandates.
+Important: this is evidence for discussion, not an automatic decision rule.
 
-### 2.3 Identifiability and hierarchy caveat
+## 3. Strengths and limits
 
-When fitting a single-area slice, hierarchical separation weakens conceptually, reducing the practical meaning of national-versus-local decomposition. This is a communication risk if labels are interpreted causally or organisationally.
+### Strengths
 
-### 2.4 Decision-use boundary
+1. clear uncertainty representation;
+2. robust offline/online split;
+3. cache-first serving model;
+4. safe synthetic-data setup.
 
-The model supports:
+### Limits
 
-1. uncertainty-aware discussion;
-2. scenario interpretation under explicit assumptions;
-3. structured technical review.
+1. synthetic generator and fitted model are not perfectly matched;
+2. fast mode has lighter diagnostics;
+3. reference lines are not calibrated policy thresholds.
 
-The model does not support:
+## 4. Safe interpretation boundaries
 
-1. direct clinical decision automation;
-2. policy trigger setting without calibration evidence;
+This work supports:
+
+1. uncertainty-aware planning conversations;
+2. technical model review;
+3. prototype communication and learning.
+
+This work does not support:
+
+1. clinical decision automation;
+2. direct policy triggering;
 3. claims of validated operational forecasting.
 
-## 3. Methodological strengths and limitations
+## 5. What to read next
 
-### 3.1 Strengths
+1. architecture rationale: [../20-architecture/README.md](../20-architecture/README.md)
+2. governance controls: [../50-governance/GOVERNANCE_OVERVIEW.md](../50-governance/GOVERNANCE_OVERVIEW.md)
+3. assumptions register: [../70-reference/assumptions-register.md](../70-reference/assumptions-register.md)
+4. evidence references: [../70-reference/references.md](../70-reference/references.md)
+5. operations runbook: [../40-operations/RUNBOOK.md](../40-operations/RUNBOOK.md)
 
-1. Explicit uncertainty representation.
-2. Structured separation of computation and serving.
-3. Practical cache-first operational design.
-4. Transparent synthetic-data framing.
+## Assurance statement
 
-### 3.2 Limitations
+This summary supports a prototype-level claim only.
+It is suitable for communication and technical exploration under synthetic-data constraints.
 
-1. Structural mismatch between synthetic generator dynamics and fitted model assumptions.
-2. Limited exploitation of multivariate indicators.
-3. Fast-mode inference settings reduce assurance depth.
-4. Reference thresholds are not externally calibrated.
-
-### 3.3 Assurance implications
-
-Each limitation has assurance consequences:
-
-1. structural mismatch weakens transfer claims beyond prototype context;
-2. limited diagnostics increase residual convergence uncertainty in fast mode;
-3. uncalibrated thresholds require strict communication caveats.
-
-## 4. SWOT analysis
-
-### 4.1 Project SWOT
-
-| Dimension | Analysis |
-| --- | --- |
-| Strengths | Clear modular architecture, uncertainty-first communication, reproducible offline artefacts, synthetic-data safety. |
-| Weaknesses | Potentially ambiguous threshold semantics, limited diagnostic regimen in fast mode, partial hierarchy fragility in narrow slices. |
-| Opportunities | Extend to richer temporal and multivariate models, establish calibration framework, build governance-ready evaluation pack. |
-| Threats | Misinterpretation as policy tool, over-claiming readiness, communication drift across technical and non-technical channels. |
-
-### 4.2 Communication SWOT
-
-| Dimension | Analysis |
-| --- | --- |
-| Strengths | Existing governance tone is explicit and responsible; vocabulary can be standardised through glossary-first policy. |
-| Weaknesses | Legacy docs overlap can obscure canonical messages. |
-| Opportunities | Audience-specific pathways and hyperlinked taxonomy can reduce onboarding friction and improve review quality. |
-| Threats | Divergent paraphrasing in PRs can reintroduce ambiguity and overstatement. |
-
-## 5. Launch posture and communication strategy
-
-### 5.1 Suggested launch phases
-
-1. Internal technical preview: engineering and modelling audience.
-2. Controlled stakeholder walkthrough: operational and governance audience.
-3. Broader prototype communication: only with explicit scope boundary statements.
-
-### 5.2 Minimum launch communication pack
-
-1. one-page purpose and non-scope statement;
-2. lay-person guide;
-3. technical summary;
-4. governance overview and assumptions register;
-5. changelog entry and ownership details.
-
-### 5.3 Message discipline for launch
-
-Use language that is:
-
-1. probabilistic, not deterministic;
-2. advisory, not directive;
-3. transparent about assumptions and uncertainty;
-4. explicit that this is not clinical decision automation.
-
-### 5.4 Minimum evidence bundle for defensible communication
-
-1. architecture rationale page: [../20-architecture/README.md](../20-architecture/README.md)
-2. governance controls and risk register linkage: [../50-governance/GOVERNANCE_OVERVIEW.md](../50-governance/GOVERNANCE_OVERVIEW.md)
-3. assumptions and validation plan: [../70-reference/assumptions-register.md](../70-reference/assumptions-register.md)
-4. external standards and methods references: [../70-reference/references.md](../70-reference/references.md)
-
-## 6. Candidate roadmap for research depth
-
-### 6.1 Master’s-level maturation
-
-1. formal posterior predictive checks;
-2. richer diagnostics and convergence monitoring;
-3. sensitivity analysis over priors and thresholds;
-4. documented ablation of indicator sets.
-
-### 6.2 PhD-level maturation
-
-1. hierarchical dynamic latent-state model with temporal dependencies;
-2. model comparison under proper scoring rules;
-3. calibration and decision-theoretic utility analysis;
-4. causal or quasi-causal policy sensitivity framing where defensible;
-5. full uncertainty decomposition and epistemic versus aleatoric articulation.
-
-## 7. UML component view
-
-```mermaid
-classDiagram
-    class SyntheticDataGenerator {
-        +generate_weekly_panel()
-        +generate_episode_data()
-    }
-
-    class BayesianPressureModel {
-        +fit_pressure_model(df, fast)
-        +export_posterior()
-    }
-
-    class CacheManager {
-        +is_valid()
-        +warm_cache()
-        +load_posteriors()
-        +load_summary_stats()
-    }
-
-    class InferenceDaemon {
-        +check_for_updates()
-        +run_once()
-        +run_forever()
-    }
-
-    class FullDashboard {
-        +render_interactive_view()
-    }
-
-    class FastDashboard {
-        +render_readonly_view()
-    }
-
-    SyntheticDataGenerator --> BayesianPressureModel
-    BayesianPressureModel --> CacheManager
-    InferenceDaemon --> BayesianPressureModel
-    InferenceDaemon --> CacheManager
-    CacheManager --> FullDashboard
-    CacheManager --> FastDashboard
-```
-
-## 8. Recommended next actions
-
-1. define canonical metric language and apply it in UI and docs;
-2. introduce testing and diagnostics baselines for model integrity;
-3. implement formal documentation review gates in PR workflow;
-4. create decision records for threshold policy and model evolution.
-
-## 9. Assurance statement
-
-This document supports a prototype-level evidence claim:
-
-The architecture and model are suitable for uncertainty-aware communication and technical exploration under synthetic data constraints.
-
-It does not support a production-readiness or clinical-effectiveness claim without additional validation, calibration, and governance sign-off.
-
-## Related links
-
-1. docs home: ../README.md
-2. lay-person guide: ../10-product/LAYPERSON_GUIDE.md
-3. runbook: ../40-operations/RUNBOOK.md
-4. governance overview: ../50-governance/GOVERNANCE_OVERVIEW.md
-5. assumptions register: ../70-reference/assumptions-register.md
-6. references: ../70-reference/references.md
+Production or clinical claims require additional validation, calibration, and formal governance sign-off.
 
 ## Last updated
 
