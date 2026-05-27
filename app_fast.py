@@ -24,38 +24,19 @@ import matplotlib.pyplot as plt
 import arviz as az
 
 from cache_manager import CacheManager
+from dashboard_shared import (
+    DEFAULT_RISK_ELEVATED_TIER_MIN_P_CONCERN,
+    DEFAULT_RISK_ELEVATED_TIER_MIN_P_HIGH,
+    DEFAULT_RISK_MEDIUM_TIER_MIN_P_CONCERN,
+    DEFAULT_RISK_MEDIUM_TIER_MIN_P_HIGH,
+    THRESHOLD_BASELINE,
+    THRESHOLD_CONCERN,
+    THRESHOLD_ELEVATED,
+    credible_triplet,
+    pressure_index_samples,
+)
 
 POSTERIORS_NC = "posteriors.nc"
-
-# Fixed thresholds (not tunable in fast path)
-THRESHOLD_BASELINE = 0.0
-THRESHOLD_CONCERN = 0.5
-THRESHOLD_ELEVATED = 1.1
-
-DEFAULT_RISK_ELEVATED_TIER_MIN_P_HIGH = 0.25
-DEFAULT_RISK_ELEVATED_TIER_MIN_P_CONCERN = 0.55
-DEFAULT_RISK_MEDIUM_TIER_MIN_P_HIGH = 0.08
-DEFAULT_RISK_MEDIUM_TIER_MIN_P_CONCERN = 0.30
-
-
-def _pressure_index_samples(idata: az.InferenceData, icb_idx: int) -> np.ndarray:
-    """Extract posterior samples for a given ICB."""
-    post = idata.posterior
-    mu = post["mu_national"].values
-    eff = post["icb_effect"].values
-    sig = post["sigma_icb"].values
-    combined = mu + eff[..., icb_idx] * sig
-    return combined.astype(float).ravel()
-
-
-def _credible_triplet(samples: np.ndarray, mass: float = 0.9) -> tuple[float, float, float]:
-    """Equal-tailed interval."""
-    alpha = (1.0 - mass) / 2.0
-    lo, mid, hi = [
-        float(x)
-        for x in np.percentile(samples, [100.0 * alpha, 50.0, 100.0 * (1.0 - alpha)])
-    ]
-    return lo, mid, hi
 
 
 def _risk_band_summary(
@@ -72,7 +53,7 @@ def _risk_band_summary(
 
 def _plot_minimal(samples: np.ndarray) -> plt.Figure:
     """Minimal histogram for fast rendering."""
-    lo, mid, hi = _credible_triplet(samples, 0.9)
+    lo, mid, hi = credible_triplet(samples, 0.9)
     
     fig, ax = plt.subplots(figsize=(10, 3), layout="constrained")
     ax.hist(
@@ -241,13 +222,13 @@ with st.sidebar:
 
 # Main display
 icb_idx = icbs.index(selected_icb)
-samples = _pressure_index_samples(idata, icb_idx)
+samples = pressure_index_samples(idata, icb_idx)
 
 p_above_baseline = float(np.mean(samples > THRESHOLD_BASELINE))
 p_above_concern = float(np.mean(samples > THRESHOLD_CONCERN))
 p_above_elevated = float(np.mean(samples > THRESHOLD_ELEVATED))
 
-lo, mid, hi = _credible_triplet(samples, 0.9)
+lo, mid, hi = credible_triplet(samples, 0.9)
 risk_label, risk_hint = _risk_band_summary(p_above_elevated, p_above_concern)
 
 # Summary card

@@ -12,55 +12,21 @@ import matplotlib.pyplot as plt
 import arviz as az
 
 from cache_manager import CacheManager
+from dashboard_shared import (
+    DEFAULT_RISK_ELEVATED_TIER_MIN_P_CONCERN,
+    DEFAULT_RISK_ELEVATED_TIER_MIN_P_HIGH,
+    DEFAULT_RISK_MEDIUM_TIER_MIN_P_CONCERN,
+    DEFAULT_RISK_MEDIUM_TIER_MIN_P_HIGH,
+    THRESHOLD_BASELINE,
+    THRESHOLD_CONCERN,
+    THRESHOLD_ELEVATED,
+    credible_triplet,
+    pressure_index_samples,
+    resolve_icb_index,
+)
 
 WEEKLY_CSV = "synthetic_nhs_pressure.csv"
 POSTERIORS_NC = "posteriors.nc"
-
-# -----------------------------------------------------------------------------
-# Reference levels on the latent index (DEMO ONLY)
-# -----------------------------------------------------------------------------
-# These positions are fixed cut-points for communication in this prototype. They are
-# NOT official NHS escalation thresholds, bed targets, or clinically derived limits.
-# For production, replace via co-design with operations / IG and document provenance.
-THRESHOLD_BASELINE = 0.0
-THRESHOLD_CONCERN = 0.5
-THRESHOLD_ELEVATED = 1.1
-
-# -----------------------------------------------------------------------------
-# Risk summary band (Low / Medium / Elevated) — UI HEURISTIC
-# -----------------------------------------------------------------------------
-# Not validated against any real escalation policy. Tune with operations if you adopt
-# this pattern; values are posterior probabilities on the same references above.
-DEFAULT_RISK_ELEVATED_TIER_MIN_P_HIGH = 0.25  # P(exceeds high ref)
-DEFAULT_RISK_ELEVATED_TIER_MIN_P_CONCERN = 0.55  # P(exceeds concern ref) OR gate
-DEFAULT_RISK_MEDIUM_TIER_MIN_P_HIGH = 0.08
-DEFAULT_RISK_MEDIUM_TIER_MIN_P_CONCERN = 0.30
-
-
-def _pressure_index_samples(idata: az.InferenceData, icb_idx: int) -> np.ndarray:
-    """
-    Extract posterior samples of combined system pressure index for a given ICB.
-    
-    Parameters
-    ----------
-    idata : az.InferenceData
-        Posterior samples from ArviZ (loaded from NetCDF).
-    icb_idx : int
-        Index of the ICB in the ICB list.
-    
-    Returns
-    -------
-    np.ndarray
-        Flattened posterior samples of the pressure index for this ICB.
-    """
-    post = idata.posterior
-    mu = post["mu_national"].values  # shape: (chains, draws)
-    eff = post["icb_effect"].values  # shape: (chains, draws, n_icbs)
-    sig = post["sigma_icb"].values   # shape: (chains, draws)
-    
-    # Compute combined pressure index: mu + icb_effect[icb_idx] * sigma
-    combined = mu + eff[..., icb_idx] * sig
-    return combined.astype(float).ravel()
 
 
 def _risk_band(
@@ -78,16 +44,6 @@ def _risk_band(
     if p_elevated >= pe_med or p_concern >= pc_med:
         return "Medium", "Worth closer monitoring; corroborate with local intelligence."
     return "Low", "No strong signal of unusually high modelled pressure; stay vigilant to new data."
-
-
-def _credible_triplet(samples: np.ndarray, mass: float) -> tuple[float, float, float]:
-    """Equal-tailed interval; returns (lower, median, upper)."""
-    alpha = (1.0 - mass) / 2.0
-    lo, mid, hi = [
-        float(x)
-        for x in np.percentile(samples, [100.0 * alpha, 50.0, 100.0 * (1.0 - alpha)])
-    ]
-    return lo, mid, hi
 
 
 def _inject_nhs_theme() -> None:
@@ -185,7 +141,7 @@ def _plot_pressure_question(
     credible_mass: float,
     show_median_line: bool,
 ) -> plt.Figure:
-    lo, mid, hi = _credible_triplet(samples, credible_mass)
+    lo, mid, hi = credible_triplet(samples, credible_mass)
     pct_label = f"{int(credible_mass * 100)}% plausible range"
 
     fig, ax = plt.subplots(figsize=(10, 4.2), layout="constrained")
@@ -377,15 +333,23 @@ with st.sidebar:
             )
 
 subset = df[df["icb"] == icb]
-icb_codes = subset["icb"].astype("category").cat.codes.values
+if subset.empty:
+    st.error(f"No panel rows found for selected geography: {icb}")
+    st.stop()
 
-# Extract posterior samples for this ICB from the pre-computed posteriors
-samples = _pressure_index_samples(idata, int(icb_codes[0]))
+try:
+    icb_idx = resolve_icb_index(idata, icb)
+except ValueError as exc:
+    st.error(str(exc))
+    st.stop()
+
+# Extract posterior samples for this ICB from pre-computed posteriors.
+samples = pressure_index_samples(idata, icb_idx)
 
 p_above_baseline = float(np.mean(samples > THRESHOLD_BASELINE))
 p_above_concern = float(np.mean(samples > THRESHOLD_CONCERN))
 p_above_elevated = float(np.mean(samples > THRESHOLD_ELEVATED))
-lo, mid, hi = _credible_triplet(samples, credible_mass)
+lo, mid, hi = credible_triplet(samples, credible_mass)
 cred_pct = int(credible_mass * 100)
 
 risk_label, risk_hint = _risk_band(
